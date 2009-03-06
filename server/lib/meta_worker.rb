@@ -116,6 +116,11 @@ module BackgrounDRb
       @thread_pool = ThreadPool.new(self,pool_size || 20,@logger)
       t_worker_key = worker_options && worker_options[:worker_key]
 
+      pid_file = "#{RAILS_HOME}/tmp/pids/backgroundrb_#{BDRB_CONFIG[:backgroundrb][:port]}_worker_#{t_worker_key}.pid"
+      op = File.open(pid_file, "w")
+      op.write(Process.pid().to_s)
+      op.close
+
       @cache = ResultStorage.new(worker_name,t_worker_key,BDRB_CONFIG[:backgroundrb][:result_storage])
 
       if(worker_options && worker_options[:schedule] && no_auto_load)

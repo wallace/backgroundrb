@@ -6,6 +6,11 @@ module BackgrounDRb
       pgid =  Process.getpgid(pid)
       puts "Stopping BackgrounDRb with pid #{pid}...."
       Process.kill('-TERM', pgid)
+    rescue Errno::ESRCH # No process - Do nothing
+      puts $!
+    rescue Errno::EPERM # Permission denied.
+      puts $!
+    ensure
       File.delete(arg_pid_file) if File.exists?(arg_pid_file)
       puts "Success!"
     end
@@ -37,13 +42,13 @@ module BackgrounDRb
         sleep(5)
         exit(0)
       else
-        try_restart if running?
-        puts "Starting BackgrounDRb .... "
+	# try_restart if running? - allow monitoring software to determine when/if to restart, not bdrb itself
+        puts "Starting BackgrounDRb: #{Time.now} .... "
         op = File.open(PID_FILE, "w")
         op.write(Process.pid().to_s)
         op.close
         if BDRB_CONFIG[:backgroundrb][:log].nil? or BDRB_CONFIG[:backgroundrb][:log] != 'foreground'
-          log_file = File.open(SERVER_LOGGER,"w+")
+          log_file = File.open(SERVER_LOGGER,"a+")
           [STDIN, STDOUT, STDERR].each {|desc| desc.reopen(log_file)}
         end
 
@@ -52,6 +57,7 @@ module BackgrounDRb
     end
 
     def stop
+      puts "Stopping BackgrounDRb: #{Time.now} .... "
       pid_files = Dir["#{RAILS_HOME}/tmp/pids/backgroundrb_*.pid"]
       pid_files.each { |x| kill_process(x) }
     end
