@@ -58,7 +58,7 @@ module BackgrounDRb
 
     def stop
       puts "Stopping BackgrounDRb: #{Time.now} .... "
-      pid_files = Dir["#{RAILS_HOME}/tmp/pids/backgroundrb_*.pid"]
+      pid_files = Dir["#{RAILS_HOME}/../../shared/pids/backgroundrb_*.pid"]
       pid_files.each { |x| kill_process(x) }
     end
   end
